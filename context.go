@@ -97,15 +97,66 @@ func (c *context) insert(n *node) {
 	b := n.b
 	data := b.data
 
-	t := int(b.Distance())
-	done := c.done[t]
-	
+	distance := int(b.Distance())
+	done := c.done[distance]
+	// Todo: make a new func to calcute the cost
 	if tmp :=(n.depth - c.config.expectdepth);tmp > 0 {
-		t = t + tmp
+		distance = distance + tmp
 	}
-	l := c.pending[t]
-	
-	for e := done.Front(); e != nil; e = e.Next() {	// TODO: MAKE IT A CON
+	l := c.pending[distance]
+
+	hasFound := false
+	middle := done.Len()/2;
+	found := make(chan *node)
+	// From front to back
+	go func() {
+		for e,n := done.Front(),0; n < middle; e,n = e.Next(),n+1{
+			if(hasFound) {
+				break
+			} else {
+				node := e.Value.(*node)
+				if node.b.data == data {
+					found <- node
+					return
+				}
+			}
+		}
+		found <- nil
+	}()
+	// From back to front
+	go func() {
+		for e,n := done.Back(),done.Len(); n > middle; e,n = e.Prev(),n-1{
+			if(hasFound) {
+				break
+			} else {
+				node := e.Value.(*node)
+				if node.b.data == data {
+					found <- node
+					return
+				}
+			}
+		}
+		found <- nil
+	}()
+
+	var t *node = nil
+	for n:=0;n<2;n++{
+		if recv := <- found; recv != nil{
+			t = recv
+			hasFound = true
+		}
+	}
+	if t == nil{
+		l.PushFront(n)
+		c.nnode++
+	} else {
+		if t.depth > n.depth{
+			t.pre = n.pre
+			t.depth = n.depth
+			t.mv = n.mv
+		}
+	}
+/* 	for e := done.Front(); e != nil; e = e.Next() {	// TODO: MAKE IT A CON
 		node := e.Value.(*node)
 		if node.b.data == data {
 			if node.depth <= n.depth { 	// this means that there is a shorter path to the board n stores,
@@ -118,9 +169,8 @@ func (c *context) insert(n *node) {
 			}
 		}
 	}
-
-	l.PushFront(n)
-	c.nnode++
+ */
+ 	close(found)
 }
 
 // Form a node with depth of 1 form a boad.
@@ -161,3 +211,4 @@ func (n *node) path() []int8 {
 
 	return path
 }
+
