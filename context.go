@@ -1,6 +1,4 @@
-/* 
- * 
- */
+//
 package main 
 
 import (
@@ -30,8 +28,8 @@ type context struct {
 type node struct {
 	pre *node	// used to determine path
 	depth int
-	b board			// the current board
-	mv int8			// previous move
+	b board		// the current board
+	mv int8		// previous move
 }
 
 // Initialise context with config
@@ -47,7 +45,7 @@ func (c *context) init(config *configuration){
 	}
 	
 	// insert origin board to pending list
-	c.insert(config.origin_board.formnode(nil,MoveNone))
+	c.insert(config.originBoard.formnode(nil,MoveNone))
 }
 
 // Search routine
@@ -65,7 +63,7 @@ func Search(c *context) []int8 {
 // Evaluate a node with lowest cost in the pending list
 // 		Return pointer to a node if Targetboard is reached, nil otherwise.
 func (c *context) evolve() *node{
-	var n *node = nil
+	var n *node
 	var d int
 
 	// find one with shortest distance
@@ -81,7 +79,7 @@ func (c *context) evolve() *node{
 	if t == 0 {
 		return n	// found it
 	}
-	for _,mv := range possible_moves[b.blank][n.mv + 4] {
+	for _,mv := range PossibleMoves[b.blank][n.mv + 4] {
 		new := n.move(mv)	// insert the new node
 		c.insert(new)
 	}
@@ -139,7 +137,7 @@ func (c *context) insert(n *node) {
 		found <- nil
 	}()
 
-	var t *node = nil
+	var t *node
 	for n:=0;n<2;n++{
 		if recv := <- found; recv != nil{
 			t = recv
@@ -156,20 +154,6 @@ func (c *context) insert(n *node) {
 			t.mv = n.mv
 		}
 	}
-/* 	for e := done.Front(); e != nil; e = e.Next() {	// TODO: MAKE IT A CON
-		node := e.Value.(*node)
-		if node.b.data == data {
-			if node.depth <= n.depth { 	// this means that there is a shorter path to the board n stores,
-				return					// so no need for n;
-			} else {	// Updata depth and ancestor
-				node.pre = n.pre
-				node.depth = n.depth
-				node.mv = n.mv
-				return
-			}
-		}
-	}
- */
  	close(found)
 }
 
@@ -187,7 +171,7 @@ func (b *board) formnode(pre *node ,mv int8) *node {
 
 // Form a new node form existing one and perform operation mv to it.
 func (n *node) move(mv int8) *node{
-	var nc node = *n
+	var nc = *n
 
 	nc.mv = mv
 	nc.pre = n

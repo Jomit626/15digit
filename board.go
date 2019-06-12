@@ -1,6 +1,4 @@
-/* 
- * This file defines what a board is and the operations we can do to it.
- */
+//This file defines what a board is and the operations we can do to it.
 package main 
 
 import (
@@ -10,7 +8,7 @@ import (
 )
 
 const (
-	Target = 18364758544493064720
+	Target = 18364758544493064720	//
 	Blank = 0xf	//15 representing the blank 
 
 	// Move operations
@@ -35,10 +33,11 @@ type board struct {
 	blank int8 
 }
 
-var Targetboard = board{18364758544493064720,15}	// The targetboard in which the number of position i is i
+// Targetboard The board in which the number of position i is i
+var Targetboard = board{18364758544493064720,15}
 
-// For output description
-var move_description = map[int8]string{
+// MoveDescription For output description
+var MoveDescription = map[int8]string{
 	MoveUp		:"UP ",
 	MoveDown	:"Down ",
 	MoveLeft 	:"Left ",
@@ -46,9 +45,8 @@ var move_description = map[int8]string{
 	MoveNone	:"START ",
 }
 
-// Given the position of the blank and the previous move, this table tells the possible move to do
-// 					[blank pos] [preivous mv + 4]
-var possible_moves = [16][9][]int8 {
+// PossibleMoves Given the position of the blank and the previous move([blank pos] [preivous mv + 4]), this table tells the possible move to do		
+var PossibleMoves = [16][9][]int8 {
 	//  Previous move
 	//	{{/*MoveUp*/},nil,nil,				 {/*MoveLeft*/},			{/*MoveNone*/},							{/*MoveRight*/},nil,nil,			{/*MoveDown*/},},
 		{{MoveRight},nil,nil,				 {MoveDown},				{MoveRight,MoveDown},					nil,nil,nil,						nil,},							// Pos 0
@@ -125,13 +123,13 @@ func (b *board) Print(){
 // 	Method to caculate the distance of one number:
 //	tmp = | number -  the position index of that number |
 //	distance = tmp % 4 + [tmp / 4]
-func (b1 *board) Distance() uint32 {
+func (b *board) Distance() uint32 {
 	const (
 		signmask = uint32(0x80000000)
 	)
 	var s1,s2,s3,s4 uint32
 	
-	data := b1.data
+	data := b.data
 
 	// 4 X 4 loop unrolling
 	for i:=uint32(0);i<16;i+=4{
@@ -182,7 +180,7 @@ func (b *board) Rand(n int){
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	mv := int8(MoveNone)
 	for i:=0;i<n;i++{
-		pmv := possible_moves[b.blank][mv + 4]
+		pmv := PossibleMoves[b.blank][mv + 4]
 		mv = pmv[r.Intn(len(pmv))]
 		b.Move(mv)
 	}
