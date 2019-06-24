@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Target = 18364758544493064720	//
+	Target = 18364758544493064720	//	the board of the target
 	Blank = 0xf	//15 representing the blank 
 
 	// Move operations
@@ -45,7 +45,7 @@ var MoveDescription = map[int8]string{
 	MoveNone	:"START ",
 }
 
-// PossibleMoves Given the position of the blank and the previous move([blank pos] [preivous mv + 4]), this table tells the possible move to do		
+// PossibleMoves Given the position of the blank and the previous move([blank pos] [preivous mv + 4]), this table tells the possible moves to preform		
 var PossibleMoves = [16][9][]int8 {
 	//  Previous move
 	//	{{/*MoveUp*/},nil,nil,				 {/*MoveLeft*/},			{/*MoveNone*/},							{/*MoveRight*/},nil,nil,			{/*MoveDown*/},},
@@ -133,46 +133,48 @@ func (b *board) Distance() uint32 {
 
 	// 4 X 4 loop unrolling
 	for i:=uint32(0);i<16;i+=4{
-
-		n1 := uint32(data&0xf)
-		n2 := i
-		t1 := n1 - n2
+		var n1,n2,n3,n4 uint32
+		var t1,t2,t3,t4 uint32
+		n1 = uint32(data&0xf)
+		n2 = i
+		t1 = n1 - n2
 		if (t1&signmask != 0){	// if t is negative
 			t1 = ^t1 + 1
 		}
 		data >>= 4
 		
-
-		n3 := uint32(data&0xf)
-		n4 := i + 1
-		t2 := n3 - n4
+		n3 = uint32(data&0xf)
+		n4 = i + 1
+		t2 = n3 - n4
 		if (t2&signmask != 0){
 			t2 = ^t2 + 1
 		}
 		data >>= 4
-
+		
 		n1 = uint32(data&0xf)
 		n2 = i + 2
-		t3 := n1 - n2
+		t3 = n1 - n2
 		if (t3&signmask != 0){
 			t3 = ^t3 + 1
 		}
 		data >>= 4
-
+		
 		n3 = uint32(data&0xf)
 		n4 = i + 3
-		t4 := n3 - n4
+		t4 = n3 - n4
 		if (t4&signmask != 0){
 			t4 = ^t4 + 1
 		}
-
 		data >>= 4
+		
 		s1 += t1&0x3 + (t1>>2) // s += t%4 + t/4
 		s2 += t2&0x3 + (t2>>2)
 		s3 += t3&0x3 + (t3>>2)
 		s4 += t4&0x3 + (t4>>2)
 	}
-	return (s1 + s2) + (s3 + s4)
+	t := 15 - uint32(b.blank)	// subtract the Blank distance
+	t = t&0x3 + (t>>2) 
+	return (s1 + s2) + (s3 + s4) - t
 }
 
 // Make a board move n times randomly
